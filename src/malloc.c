@@ -229,7 +229,7 @@ void *malloc(size_t size)
 
          /* Sets proper next variables */
          split->next = next->next;
-         next->next = &split;
+         next->next = split;
 
          /* Sets proper free variable */
          split->free = true;
