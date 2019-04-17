@@ -218,6 +218,26 @@ void *malloc(size_t size)
    struct _block *next = findFreeBlock(&last, size);
 
    /* TODO: Split free _block if possible */
+   if(next)
+   {
+      if(next->size > size)
+      {
+         /* Creates new link of appropriate size*/
+         struct _block* split = (struct _block*) malloc (sizeof(struct _block));
+         split->size = next->size - size;
+         next->size = size;
+
+         /* Sets proper next variables */
+         split->next = next->next;
+         next->next = &split;
+
+         /* Sets proper free variable */
+         split->free = true;
+
+         // TODO: Padding?
+      }
+      next->free = false;
+   }
 
    /* Could not find free _block, so grow heap */
    if (next == NULL) 
