@@ -78,7 +78,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 
 #if defined BEST && BEST == 0
    /* Best fit */
-   struct _block smallestblock = NULL; /* Saves smallest block that can satisfy request */
+   struct _block *smallestblock = NULL; /* Saves smallest block that can satisfy request */
    while (curr)
    {
       if (curr->size >= size) /* If we find a big enough free block to satisfy request */
@@ -100,7 +100,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 #endif
 
 #if defined WORST && WORST == 0
-   struct _block biggestblock = NULL; /* Saves biggest block that can satisfy request */
+   struct _block *biggestblock = NULL; /* Saves biggest block that can satisfy request */
    while(curr)
    {
       if (curr->size >= size) /* If we find a big enough free block to satisfy request */
