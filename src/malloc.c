@@ -122,8 +122,8 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 
 #if defined NEXT && NEXT == 0
    struct _block *beginning = *last;
-   curr = *last->next;
-   while(last != beginning && !(curr->size >= size)) 
+   curr = (*last)->next;
+   while(*last != beginning && !(curr->size >= size)) 
    {
       if(curr == NULL)
       {
