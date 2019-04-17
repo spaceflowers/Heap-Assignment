@@ -62,10 +62,6 @@ struct _block *freeList = NULL; /* Free list to track the _blocks available */
  * \param size size of the _block needed in bytes 
  *
  * \return a _block that fits the request or NULL if no free _block matches
- *
- * \TODO Implement Next Fit
- * \TODO Implement Best Fit
- * \TODO Implement Worst Fit
  */
 struct _block *findFreeBlock(struct _block **last, size_t size) 
 {
@@ -81,15 +77,62 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 #endif
 
 #if defined BEST && BEST == 0
-   printf("TODO: Implement best fit here\n");
+   /* Best fit */
+   struct _block smallestblock = NULL; /* Saves smallest block that can satisfy request */
+   while (curr)
+   {
+      if (curr->size >= size) /* If we find a big enough free block to satisfy request */
+      {
+         if(smallestblock == NULL) 
+         {
+            smallestblock = curr;
+         }
+         else if(curr->size < smallestblock->size) /* If current free block is smaller than saved block */
+         {
+            smallestblock = curr;
+         }
+      }
+      
+      *last = curr;
+      curr = curr->next;
+   }
+   curr = smallestblock;
 #endif
 
 #if defined WORST && WORST == 0
-   printf("TODO: Implement worst fit here\n");
+   struct _block biggestblock = NULL; /* Saves biggest block that can satisfy request */
+   while(curr)
+   {
+      if (curr->size >= size) /* If we find a big enough free block to satisfy request */
+      {
+         if(biggestblock == NULL)
+         {
+            biggestblock = curr;
+         }
+         else if(curr->size > biggestblock->size) /* If current free block is bigger than saved block */
+         {
+            biggestblock = curr;
+         }
+      }
+
+      *last = curr;
+      curr = curr->next;
+   }
 #endif
 
 #if defined NEXT && NEXT == 0
-   printf("TODO: Implement next fit here\n");
+   struct _block *beginning = last;
+   curr = *last->next;
+   while(last != beginning && !(curr->size >= size)) 
+   {
+      if(curr == NULL)
+      {
+         curr = freeList;
+      }
+
+      *last = curr;
+      curr = curr->next;
+   }
 #endif
 
    return curr;
