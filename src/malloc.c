@@ -1,3 +1,10 @@
+/*
+   Thomas Tran
+   1000901761
+   Kyra Belgica
+   1001290832
+*/
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -217,14 +224,14 @@ void *malloc(size_t size)
    struct _block *last = freeList;
    struct _block *next = findFreeBlock(&last, size);
 
-   /* TODO: Split free _block if possible */
+   /* Split free _block if possible */
    if(next)
    {
       if(next->size > size)
       {
          /* Creates new link of appropriate size*/
          struct _block* split = (struct _block*) malloc (sizeof(struct _block));
-         split->size = next->size - size;
+         split->size = next->size - size; //TODO Header?
          next->size = size;
 
          /* Sets proper next variables */
@@ -280,7 +287,14 @@ void free(void *ptr)
    assert(curr->free == 0);
    curr->free = true;
 
-   /* TODO: Coalesce free _blocks if needed */
+   /* Coalesce free _blocks if needed */
+   if (curr->next->free == true)
+   {
+      curr->size += curr->next->size;
+      curr->next = curr->next->next;
+
+      free(curr->next);
+   }
 }
 
 /* vim: set expandtab sts=3 sw=3 ts=6 ft=cpp: --------------------------------*/
