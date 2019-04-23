@@ -17,15 +17,15 @@
 
 
 static int atexit_registered = 0;
-static int num_mallocs       = 0;
-static int num_frees         = 0;
-static int num_reuses        = 0;
-static int num_grows         = 0;
-static int num_splits        = 0;
-static int num_coalesces     = 0;
-static int num_blocks        = 0;
-static int num_requested     = 0;
-static int max_heap          = 0;
+static int num_mallocs       = 0; //
+static int num_frees         = 0; //
+static int num_reuses        = 0; //
+static int num_grows         = 0; //
+static int num_splits        = 0; //
+static int num_coalesces     = 0; //
+static int num_blocks        = 0; //
+static int num_requested     = 0; //
+static int max_heap          = 0; //
 
 /*
  *  \brief printStatistics
@@ -159,6 +159,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
  */
 struct _block *growHeap(struct _block *last, size_t size) 
 {
+   num_grows++;
    /* Request more space from OS */
    struct _block *curr = (struct _block *)sbrk(0);
    struct _block *prev = (struct _block *)sbrk(sizeof(struct _block) + size);
@@ -187,6 +188,7 @@ struct _block *growHeap(struct _block *last, size_t size)
    curr->size = size;
    curr->next = NULL;
    curr->free = false;
+   num_blocks++;
    return curr;
 }
 
@@ -204,6 +206,8 @@ struct _block *growHeap(struct _block *last, size_t size)
  */
 void *malloc(size_t size) 
 {
+   num_requested += size;
+   num_mallocs++;
 
    if( atexit_registered == 0 )
    {
@@ -227,11 +231,12 @@ void *malloc(size_t size)
    /* Split free _block if possible */
    if(next)
    {
+      num_reuses++;
       if(next->size > size)
       {
          /* Creates new link of appropriate size*/
-         struct _block* split = (struct _block*) malloc (sizeof(struct _block));
-         split->size = next->size - size; //TODO Header?
+         struct _block* split = BLOCK_HEADER(next) + size;
+         split->size = next->size - size;
          next->size = size;
 
          /* Sets proper next variables */
@@ -240,10 +245,10 @@ void *malloc(size_t size)
 
          /* Sets proper free variable */
          split->free = true;
-
-         // TODO: Padding?
       }
       next->free = false;
+      num_splits++;
+      num_blocks++;
    }
 
    /* Could not find free _block, so grow heap */
@@ -261,6 +266,20 @@ void *malloc(size_t size)
    /* Mark _block as in use */
    next->free = false;
 
+   struct _block *check = freeList;
+   int heap_size = 0;
+   while(check)
+   {
+      if(check->free == false)
+      {
+         heap_size += check->size;
+      }
+   }
+
+   if(heap_size > max_heap)
+   {
+      max_heap = heap_size;
+   }
    /* Return data address associated with _block */
    return BLOCK_DATA(next);
 }
@@ -277,6 +296,7 @@ void *malloc(size_t size)
  */
 void free(void *ptr) 
 {
+   num_frees++;
    if (ptr == NULL) 
    {
       return;
@@ -288,13 +308,18 @@ void free(void *ptr)
    curr->free = true;
 
    /* Coalesce free _blocks if needed */
-   if (curr->next->free == true)
+   curr = freeList;
+   while(curr != NULL)
    {
-      curr->size += curr->next->size;
-      curr->next = curr->next->next;
-
-      free(curr->next);
+      if (curr && curr->free && curr->next && curr->next->free)
+      {
+         curr->size = curr->size + curr->next->size + sizeof(struct _block);
+         curr->next = curr->next->next;
+         num_blocks--;
+         num_coalesces++;
+      }
    }
 }
+
 
 /* vim: set expandtab sts=3 sw=3 ts=6 ft=cpp: --------------------------------*/
