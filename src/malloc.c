@@ -10,6 +10,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ALIGN4(s)         (((((s) - 1) >> 2) << 2) + 4)
 #define BLOCK_DATA(b)      ((b) + 1)
@@ -330,5 +331,27 @@ void free(void *ptr)
    }
 }
 
+void *realloc(void* ptr, size_t size)
+{
+  if (ptr == NULL)
+    return malloc(size);
+  if (size == 0)
+  {
+    free(ptr);
+    return NULL;
+  }
+  char buffer[size];
+  // Get the old block.
+  struct _block* curr = BLOCK_HEADER(ptr);
+  memcpy(buffer, BLOCK_DATA(curr) , curr->size);
+  free(ptr);
+  struct _block* new = (struct _block*) malloc (size);
+  assert(new->size == size);
+  memcpy(BLOCK_DATA(new), buffer, new->size);
+
+  return BLOCK_DATA(new);
+
+
+}
 
 /* vim: set expandtab sts=3 sw=3 ts=6 ft=cpp: --------------------------------*/
