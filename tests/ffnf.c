@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 int main()
 {
@@ -10,10 +11,12 @@ int main()
 
   printf("First fit should pick this one: %p\n", ptr1 );
   printf("Next fit should pick this one: %p\n", ptr3 );
+  //printf("PID = %d\n", getpid());
+  //getchar();
+  free( ptr1 );
+  free( ptr2 );
+  free( ptr3 );
 
-  free( ptr1 ); 
-  free( ptr2 ); 
-  free( ptr3 ); 
 
   char * ptr5 = ( char * ) malloc ( 6000 );
 
@@ -24,4 +27,3 @@ int main()
 
   return 0;
 }
-

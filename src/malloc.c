@@ -129,16 +129,25 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 
 #if defined NEXT && NEXT == 0
    struct _block *beginning = *last;
-   curr = (*last)->next;
-   while(*last != beginning && !(curr->size >= size))
+   curr = *last;
+   bool looped = false;
+   while((curr != beginning || !looped) && !(curr->size >= size))
    {
       if(curr == NULL)
       {
-         curr = freeList;
+        looped = true;
+        curr = freeList;
       }
-
-      *last = curr;
-      curr = curr->next;
+      else
+      {
+        *last = curr;
+        curr = curr->next;
+      }
+   }
+   // Did not find any fits.
+   if(curr == beginning)
+   {
+     curr = NULL;
    }
 #endif
 
@@ -233,9 +242,9 @@ void *malloc(size_t size)
       if(next->size > size)
       {
          /* Creates new link of appropriate size*/
-         struct _block *split = BLOCK_HEADER(next); // ?????
-         assert(split != NULL);
-         split->size = next->size - size +sizeof(struct _block); // TODO - debugger segfaults HERE
+         struct _block *split = BLOCK_HEADER(next)/*+size*/; // ?????
+         assert(split && next);
+         split->size = next->size - size - sizeof(struct _block); // TODO - debugger segfaults HERE
          next->size = size;
 
          /* Sets proper next variables */
