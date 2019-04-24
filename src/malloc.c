@@ -233,8 +233,9 @@ void *malloc(size_t size)
       if(next->size > size)
       {
          /* Creates new link of appropriate size*/
-         struct _block* split = BLOCK_HEADER(next+size);
-         split->size = next->size - size;
+         struct _block *split = BLOCK_HEADER(next); // ?????
+         assert(split != NULL);
+         split->size = next->size - size +sizeof(struct _block); // TODO - debugger segfaults HERE
          next->size = size;
 
          /* Sets proper next variables */
