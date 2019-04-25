@@ -10,6 +10,7 @@ TESTS=		tests/test1 \
                 tests/test2 \
                 tests/test3 \
                 tests/test4 \
+		tests/test5 \
                 tests/bfwf \
                 tests/ffnf 
 
@@ -38,6 +39,7 @@ run:
 	env LD_PRELOAD=lib/libmalloc-ff.so tests/test2 && echo "\nTest 2 run successfully" &&\
 	env LD_PRELOAD=lib/libmalloc-ff.so tests/test3 && echo "\nTest 3 run successfully" &&\
 	env LD_PRELOAD=lib/libmalloc-ff.so tests/test4 && echo "\nTest 4 run successfully" &&\
+	env LD_PRELOAD=lib/libmalloc-ff.so tests/test5 && echo "\nTest 5 run successfully" &&\
 	env LD_PRELOAD=lib/libmalloc-ff.so tests/ffnf && echo "\nTest ffnf run with first fit" &&\
 	env LD_PRELOAD=lib/libmalloc-nf.so tests/ffnf && echo "\nTest ffnf run with next fit" &&\
 	env LD_PRELOAD=lib/libmalloc-wf.so tests/bfwf && echo "\nTest bfwf run with worst fit" &&\

@@ -240,20 +240,17 @@ void *malloc(size_t size)
    if(next)
    {
       num_reuses++;
-      if(next->size > size)
+      if(next->size > size + sizeof(struct _block)) // Check for enough space to split.
       {
-         /* Creates new link of appropriate size*/
-         struct _block *split = BLOCK_HEADER(next)/*+size*/; // ?????
-         assert(split && next);
-         split->size = next->size - size - sizeof(struct _block); // TODO - debugger segfaults HERE
+         size_t total = next->size;
+         struct _block* temp = next->next; // Saving old values for later
          next->size = size;
+         next->next = next+size;
 
-         /* Sets proper next variables */
-         split->next = next->next;
-         next->next = split;
+         next->next->free = true; // TODO - debugger segfaults HERE. Next 3 lines also crash.
+         next->next->next = temp;
+         next->next->size = total - size - sizeof(struct _block);
 
-         /* Sets proper free variable */
-         split->free = true;
          num_splits++;
          num_blocks++;
       }
@@ -340,14 +337,20 @@ void *realloc(void* ptr, size_t size)
     free(ptr);
     return NULL;
   }
-  char buffer[size];
+
   // Get the old block.
   struct _block* curr = BLOCK_HEADER(ptr);
+  char buffer[curr->size];
   memcpy(buffer, BLOCK_DATA(curr) , curr->size);
+  size_t num_bytes;
+  if(curr->size > size)
+    num_bytes = size;
+  else
+    num_bytes = curr->size;
   free(ptr);
+
   struct _block* new = (struct _block*) malloc (size);
-  assert(new->size == size);
-  memcpy(BLOCK_DATA(new), buffer, new->size);
+  memcpy(BLOCK_DATA(new), buffer, num_bytes);
 
   return BLOCK_DATA(new);
 
