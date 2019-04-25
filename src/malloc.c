@@ -89,7 +89,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
    struct _block *smallestblock = NULL; /* Saves smallest block that can satisfy request */
    while (curr)
    {
-      if (curr->size >= size) /* If we find a big enough free block to satisfy request */
+      if (curr->size >= size && curr->free) /* If we find a big enough free block to satisfy request */
       {
          if(smallestblock == NULL)
          {
@@ -111,7 +111,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
    struct _block *biggestblock = NULL; /* Saves biggest block that can satisfy request */
    while(curr)
    {
-      if (curr->size >= size) /* If we find a big enough free block to satisfy request */
+      if (curr->size >= size && curr->free) /* If we find a big enough free block to satisfy request */
       {
          if(biggestblock == NULL)
          {
@@ -126,15 +126,21 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
       *last = curr;
       curr = curr->next;
    }
+   curr = biggestblock;
 #endif
 
 #if defined NEXT && NEXT == 0
    struct _block *beginning = *last;
    curr = *last;
    bool looped = false;
-   while((curr != beginning || !looped) && !(curr->size >= size))
+   if(curr == NULL)
    {
-      if(curr == NULL)
+     curr = freeList;
+     beginning = freeList;
+   }
+   while(curr && (curr != beginning || !looped) && !(curr->size >= size))
+   {
+      if(curr->next == NULL)
       {
         looped = true;
         curr = freeList;
@@ -240,6 +246,7 @@ void *malloc(size_t size)
    if(next)
    {
       num_reuses++;
+      /*
       if(next->size > size + sizeof(struct _block)) // Check for enough space to split.
       {
          size_t total = next->size;
@@ -253,7 +260,7 @@ void *malloc(size_t size)
 
          num_splits++;
          num_blocks++;
-      }
+      }*/
    }
 
    /* Could not find free _block, so grow heap */
