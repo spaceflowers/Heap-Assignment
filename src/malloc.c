@@ -130,31 +130,25 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 #endif
 
 #if defined NEXT && NEXT == 0
-   struct _block *beginning = *last;
+   // Starting from the last used block
    curr = *last;
-   bool looped = false;
+   if(curr)
+     curr = curr->next;
+   // Check from the last block to the end of the list.
+   while(curr && !(curr->size >= size && curr->free))
+   {
+     *last = curr;
+     curr = curr->next;
+   }
+   // If the check failed, reset to beginning and search to end. (Its First Fit again!)
    if(curr == NULL)
    {
      curr = freeList;
-     beginning = freeList;
-   }
-   while(curr && (curr != beginning || !looped) && !(curr->size >= size))
-   {
-      if(curr->next == NULL)
-      {
-        looped = true;
-        curr = freeList;
-      }
-      else
-      {
+     while (curr && !(curr->free && curr->size >= size))
+     {
         *last = curr;
-        curr = curr->next;
-      }
-   }
-   // Did not find any fits.
-   if(curr == beginning)
-   {
-     curr = NULL;
+        curr  = curr->next;
+     }
    }
 #endif
 
@@ -246,7 +240,7 @@ void *malloc(size_t size)
    if(next)
    {
       num_reuses++;
-      /*
+      /* Disabled Splitting code.
       if(next->size > size + sizeof(struct _block)) // Check for enough space to split.
       {
          size_t total = next->size;
@@ -347,7 +341,7 @@ void *realloc(void* ptr, size_t size)
 
   // Get the old block.
   struct _block* curr = BLOCK_HEADER(ptr);
-  char buffer[curr->size];
+  void* buffer[curr->size];
   memcpy(buffer, BLOCK_DATA(curr) , curr->size);
   size_t num_bytes;
   if(curr->size > size)
@@ -360,8 +354,16 @@ void *realloc(void* ptr, size_t size)
   memcpy(BLOCK_DATA(new), buffer, num_bytes);
 
   return BLOCK_DATA(new);
-
-
+}
+void *calloc(size_t nmemb, size_t size)
+{
+  if( !nmemb || !size)
+  {
+    return NULL;
+  }
+  void* ptr = malloc(size * nmemb);
+  memset(ptr, 0, size*nmemb);
+  return ptr;
 }
 
 /* vim: set expandtab sts=3 sw=3 ts=6 ft=cpp: --------------------------------*/
